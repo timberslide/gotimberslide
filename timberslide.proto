@@ -1,0 +1,23 @@
+syntax = "proto3";
+package ts;
+
+service Ingest {
+  rpc StreamEvents (stream Event) returns (stream EventReply) {}
+}
+
+message Event {
+  string Topic = 1;
+  string Message = 2;
+  bool Done = 3;
+}
+
+message EventReply {
+}
+
+service Streamer {
+  rpc GetStream (Topic) returns (stream Event) {}
+}
+
+message Topic {
+  string Topic = 1;
+}
