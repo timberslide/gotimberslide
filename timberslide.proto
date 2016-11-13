@@ -21,3 +21,15 @@ service Streamer {
 message Topic {
   string Topic = 1;
 }
+
+service Topics {
+  rpc registerTopic (Register) returns (RegisterReply) {}
+}
+
+message Register {
+  string Topic = 1;
+  string User = 2;
+}
+
+message RegisterReply {
+}
