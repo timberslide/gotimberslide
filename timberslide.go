@@ -44,8 +44,8 @@ func NewClient(file string) (Client, error) {
 
 // AddTokenToContext adds a bearer token to the given context
 func AddTokenToContext(ctx context.Context, token string) context.Context {
-	md := metadata.Pairs("X-TS-Access-Token", token)
-	ctx = metadata.NewContext(context.Background(), md)
+	md := metadata.Pairs("ts-access-token", token)
+	ctx = metadata.NewContext(ctx, md)
 	return ctx
 }
 
