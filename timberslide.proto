@@ -42,3 +42,15 @@ message TopicsReq {
 message TopicsReply {
   repeated Topic topics = 1;
 }
+
+service Topics {
+  rpc registerTopic (Register) returns (RegisterReply) {}
+}
+
+message Register {
+  string Topic = 1;
+  string User = 2;
+}
+
+message RegisterReply {
+}
