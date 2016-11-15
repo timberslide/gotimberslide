@@ -19,11 +19,13 @@ service Streamer {
 }
 
 message Topic {
-  string Topic = 1;
+  int64 ID = 1;
+  string Name = 2;
 }
 
 service Topics {
   rpc registerTopic (Register) returns (RegisterReply) {}
+  rpc getTopics (TopicsReq) returns (TopicsReply) {}
 }
 
 message Register {
@@ -32,4 +34,11 @@ message Register {
 }
 
 message RegisterReply {
+}
+
+message TopicsReq {
+}
+
+message TopicsReply {
+  repeated Topic topics = 1;
 }

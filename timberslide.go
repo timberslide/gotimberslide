@@ -2,7 +2,6 @@ package ts
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -10,6 +9,7 @@ import (
 	"os/user"
 
 	"github.com/BurntSushi/toml"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
@@ -42,9 +42,9 @@ func NewClient(file string) (Client, error) {
 	return client, nil
 }
 
-// addTokenToContext adds a bearer token to the given context
-func addTokenToContext(ctx context.Context, token string) context.Context {
-	md := metadata.Pairs("authorization", fmt.Sprintf("Bearer %s", token))
+// AddTokenToContext adds a bearer token to the given context
+func AddTokenToContext(ctx context.Context, token string) context.Context {
+	md := metadata.Pairs("X-TS-Access-Token", token)
 	ctx = metadata.NewContext(context.Background(), md)
 	return ctx
 }
@@ -64,7 +64,7 @@ func (c *Client) Send(topic string) error {
 	defer conn.Close()
 
 	client := NewIngestClient(conn)
-	ctx := addTokenToContext(context.Background(), c.Token)
+	ctx := AddTokenToContext(context.Background(), c.Token)
 	stream, err := client.StreamEvents(ctx)
 	if err != nil {
 		return err
@@ -109,8 +109,8 @@ func (c *Client) Get(topic string) error {
 		return err
 	}
 	client := NewStreamerClient(conn)
-	ctx := addTokenToContext(context.Background(), c.Token)
-	stream, err := client.GetStream(ctx, &Topic{Topic: topic})
+	ctx := AddTokenToContext(context.Background(), c.Token)
+	stream, err := client.GetStream(ctx, &Topic{Name: topic})
 	if err != nil {
 		return err
 	}
