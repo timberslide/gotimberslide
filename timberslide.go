@@ -2,7 +2,6 @@ package ts
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -10,6 +9,7 @@ import (
 	"os/user"
 
 	"github.com/BurntSushi/toml"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
@@ -42,6 +42,13 @@ func NewClient(file string) (Client, error) {
 	return client, nil
 }
 
+// AddTokenToContext adds a bearer token to the given context
+func AddTokenToContext(ctx context.Context, token string) context.Context {
+	md := metadata.Pairs("ts-access-token", token)
+	ctx = metadata.NewContext(ctx, md)
+	return ctx
+}
+
 // Send takes stdin and sends it to the topic
 func (c *Client) Send(topic string) error {
 	fmt.Fprintf(os.Stderr, "ts: connecting...\n")
@@ -57,8 +64,7 @@ func (c *Client) Send(topic string) error {
 	defer conn.Close()
 
 	client := NewIngestClient(conn)
-	md := metadata.Pairs("authorization", fmt.Sprintf("Bearer %s", c.Token))
-	ctx := metadata.NewContext(context.Background(), md)
+	ctx := AddTokenToContext(context.Background(), c.Token)
 	stream, err := client.StreamEvents(ctx)
 	if err != nil {
 		return err
@@ -70,19 +76,25 @@ func (c *Client) Send(topic string) error {
 		msg.Message = scanner.Text()
 		// TODO make printing to stdout optional
 		fmt.Println(msg.Message)
-		stream.Send(msg)
+		if err = stream.Send(msg); err != nil {
+			return err
+		}
 	}
-	if err := scanner.Err(); err != nil {
+	if err = scanner.Err(); err != nil {
 		return err
 	}
 	// We finished normally, so...
 	// set the done flag and block until we hear something from the server
-	stream.Send(&Event{Topic: topic, Done: true})
+	if err = stream.Send(&Event{Topic: topic, Done: true}); err != nil {
+		return err
+	}
 	fmt.Fprintf(os.Stderr, "ts: done, waiting for server...\n")
-	stream.Recv()
-	stream.CloseSend()
+	if _, err = stream.Recv(); err != nil {
+		return err
+	}
+	err = stream.CloseSend()
 
-	return nil
+	return err
 }
 
 // Get receives the stream from the topic and writes it to stdout
@@ -97,9 +109,8 @@ func (c *Client) Get(topic string) error {
 		return err
 	}
 	client := NewStreamerClient(conn)
-	md := metadata.Pairs("authorization", fmt.Sprintf("Bearer %s", c.Token))
-	ctx := metadata.NewContext(context.Background(), md)
-	stream, err := client.GetStream(ctx, &Topic{Topic: topic})
+	ctx := AddTokenToContext(context.Background(), c.Token)
+	stream, err := client.GetStream(ctx, &Topic{Name: topic})
 	if err != nil {
 		return err
 	}
