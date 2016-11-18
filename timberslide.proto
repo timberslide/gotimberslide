@@ -21,6 +21,7 @@ service Streamer {
 message Topic {
   int64 ID = 1;
   string Name = 2;
+  int64 Position = 3;
 }
 
 service Topics {

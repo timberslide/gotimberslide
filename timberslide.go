@@ -15,6 +15,13 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+const (
+	// PositionNewest will start reading a topic at the newest message
+	PositionNewest int64 = -1
+	// PositionOldest will start reading a topic from the oldest message
+	PositionOldest int64 = -2
+)
+
 // Client contains configuration for talking to Timberslide
 type Client struct {
 	Host  string
@@ -98,7 +105,7 @@ func (c *Client) Send(topic string) error {
 }
 
 // Get receives the stream from the topic and writes it to stdout
-func (c *Client) Get(topic string) error {
+func (c *Client) Get(topic string, position int64) error {
 	host, _, err := net.SplitHostPort(c.Host)
 	if err != nil {
 		return err
@@ -110,7 +117,7 @@ func (c *Client) Get(topic string) error {
 	}
 	client := NewStreamerClient(conn)
 	ctx := AddTokenToContext(context.Background(), c.Token)
-	stream, err := client.GetStream(ctx, &Topic{Name: topic})
+	stream, err := client.GetStream(ctx, &Topic{Name: topic, Position: position})
 	if err != nil {
 		return err
 	}
