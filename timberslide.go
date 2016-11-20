@@ -150,7 +150,9 @@ func (c *Client) Iter(topic string, position int64) <-chan Event {
 }
 
 // GetTopics returns a list of all topics visible to this user
-func (c *Client) GetTopics() ([]string, error) {
-	// Implement me
-	return nil, nil
+func (c *Client) GetTopics() ([]*Topic, error) {
+	client := NewTopicsClient(c.conn)
+	ctx := addTokenToContext(context.Background(), c.Token)
+	topicsReply, err := client.GetTopics(ctx, &TopicsReq{})
+	return topicsReply.Topics, err
 }
