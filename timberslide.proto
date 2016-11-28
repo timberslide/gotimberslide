@@ -38,6 +38,7 @@ message RegisterReply {
 }
 
 message TopicsReq {
+  string Username = 1;
 }
 
 message TopicsReply {
