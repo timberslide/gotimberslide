@@ -22,6 +22,7 @@ message Topic {
   int64 ID = 1;
   string Name = 2;
   int64 Position = 3;
+  bool Public = 4;
 }
 
 service Topics {
