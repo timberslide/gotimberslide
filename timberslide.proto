@@ -28,6 +28,7 @@ message Topic {
 service Topics {
   rpc registerTopic (Register) returns (RegisterReply) {}
   rpc getTopics (TopicsReq) returns (TopicsReply) {}
+  rpc updateTopic (TopicMetadata) returns (UpdateReply) {}
 }
 
 message Register {
@@ -44,4 +45,12 @@ message TopicsReq {
 
 message TopicsReply {
   repeated Topic topics = 1;
+}
+
+message TopicMetadata {
+  string Name = 1;
+  bool public = 2;
+}
+
+message UpdateReply {
 }
